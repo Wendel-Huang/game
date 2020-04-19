@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>不同质量小球-弹性碰撞</title>
+	<meta name="viewport" content="width=850, user-scalable=false">
+	<meta charset="utf-8">
+	<script src="https://how2j.cn/study/js/jquery/2.0.0/jquery.min.js"></script>
+	<link href="https://how2j.cn/study/css/bootstrap/3.3.6/bootstrap.min.css" rel="stylesheet">
+	<script src="https://how2j.cn/study/js/bootstrap/3.3.6/bootstrap.min.js"></script>
+	<style type="text/css">
+		body{
+			text-align: center;
+			background-color: lightblue;
+		}
+		div.header{
+			height: 100px;
+			background-color:#00c7ff;
+			margin:0;
+			position: relative;
+			z-index: 10;
+		}
+		div.header div.headerBarDiv{
+			width: 100px;
+			height: 100px;
+			float: left;
+		}
+		div.header img.headerBar{
+			width: 60px;
+			height: 60px;
+			margin: 20px;
+		}
+		div.header div.title{
+			width: 680px;
+			height: 100px;
+			font-size: 35px;
+			line-height: 100px;
+			color: white;
+			float: left;
+		}
+		div.myForm{
+			width: 800px;
+			height: 200px;
+			margin: 10px auto;
+		}
+		div.myForm form span{
+			font-size: 30px;
+			width: 260px;
+			margin: 3px;
+			float: left;
+			text-align: left;
+			padding-right: 30px;
+		}
+		div.myForm form span input{
+			width: 80px;
+			height: 50px;
+			font-size: 30px;
+			background-color: lightblue;
+			float: right;
+		}
+		div.buttonDiv button{
+			height: 80px;
+			font-size: 30px;
+		}
+		div.footer{
+			position: fixed;
+			bottom: 30px;
+			width:100%;
+			height: 30px;
+		}
+		canvas{
+			width: 800px;
+			height: 800px;
+			border: 1px solid #aaa;
+			margin: 10px auto;
+			display: block;
+			background-color: black;
+		}
+		div.sideBar{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 500px;
+			height: 100%;
+			background-color:#00c7ff;
+			z-index: 5;
+			padding-top: 100px;
+			display:none;
+		}
+		div.sideBar a.sideBarElement{
+			display: block;
+			height: 80px;
+			line-height: 80px;
+			font-size: 40px;
+			color:white;
+		}
+		.sideBarElementChosen{
+			background-color: white;
+			color: black !important;
+		}
+	</style>
+</head>
+<body>
+	<div class="header">
+		<div class="headerBarDiv">
+			<img class="headerBar" src="./icon1.png">
+		</div>
+		<div class="title">不同质量小球-弹性碰撞</div>
+	</div>
+
+	<div>
+		<canvas id="can" width="800" height="800"></canvas>
+	</div>
+	<div class="myForm">
+		<form name="myform">
+			<span>位置x： <input type="text" name="x" value="200"></span>
+			<span>位置y： <input type="text" name="y" value="200"></span>
+			<span>速度vx： <input type="text" name="vx" value="0.2"></span>
+			<span>速度vy： <input type="text" name="vy" value="0.2"></span>
+			<span>质量m： <input type="text" name="m" value="10"></span>
+			<span>半径r： <input type="text" name="r" value="10"></span>
+			<span>是否滑稽： <input type="text" name="emoji" value="1"></span>
+		</form>
+	</div>
+	<div class="buttonDiv">
+		<button id="buttons_add" onclick="addBall()" type="button" class="btn btn-info">添加小球球</button>
+		<button id="buttons_clear" onclick="clearBall()" type="button" class="btn btn-info">清空小球球</button>
+		<button id="buttons_pause" onclick="pauseFun()" type="button" class="btn btn-info">暂停运行</button>
+		<button id="buttons_continue" onclick="continueFun()" type="button" class="btn btn-info">继续运行</button>
+		<button id="buttons_add" onclick="initballs()" type="button" class="btn btn-info">初始化</button>
+	</div>
+	<div class="footer">物理公式：妞妞; 程序：hwy</div>
+	<div class="sideBar">
+		<div class="sideBarElement">弹性碰撞</div>
+		<div class="sideBarElement sideBarElementChosen">引力-平方反比</div>
+		<div class="sideBarElement">测试一</div>
+		<div class="sideBarElement">测试一</div>
+	</div>
+	<script>
+		$(function(){
+			$("div.headerBarDiv").mousedown(function(){
+				$("div.sideBar").toggle();
+			})
+		})
+	</script>
+	<script type="text/javascript">
+		var can=document.getElementById('can');
+		var context=can.getContext('2d');
+		var balls=new Array();
+		var ballsnum=20;
+		var width=can.width;
+		var height=can.height;
+		var pause=false;
+		let myImg=new Image();
+		myImg.src="./huaji_lowQuality.png";
+
+		
+		
+		function initballs(){
+			balls=[];
+			for(var i=0; i<ballsnum; i++){
+				if(i==0){
+					let mr=80;
+					balls[i]={
+						emoji:true,
+						m:mr,
+						x:Math.random()*width,
+						y:Math.random()*height,
+						vx:Math.random(),
+						vy:Math.random(),
+						ax:0,
+						ay:0,
+						r:mr,
+						color:'rgb('+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+')'
+					}
+				}
+				else if(i<ballsnum/4){
+					let mr=Math.ceil(Math.random()*5+25);
+					balls[i]={
+						emoji:false,
+						m:mr,
+						x:Math.random()*width,
+						y:Math.random()*height,
+						vx:Math.random(),
+						vy:Math.random(),
+						ax:0,
+						ay:0,
+						r:mr,
+						color:'rgb('+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+')'
+					}
+				}else{
+					let mr=Math.ceil(Math.random()*5+5);
+					balls[i]={
+						emoji:false,
+						m:mr,
+						x:Math.random()*width,
+						y:Math.random()*height,
+						vx:Math.random(),
+						vy:Math.random(),
+						ax:0,
+						ay:0,
+						r:mr,
+						color:'rgb('+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+')'
+					}
+				}
+			}
+		}
+
+		function pauseFun(){
+			pause=true;
+		}
+
+		function continueFun(){
+			pause=false;
+		}
+
+		function clearBall(){
+			balls.length=0;
+		}
+
+		function addBall(){
+			let ball={
+				emoji:parseInt(myform.emoji.value),
+				x:parseFloat(myform.x.value),
+				y:parseFloat(myform.y.value),
+				vx:parseFloat(myform.vx.value),
+				vy:parseFloat(myform.vy.value),
+				ax:0,
+				ay:0,
+				m:parseFloat(myform.m.value),
+				r:parseFloat(myform.r.value),
+				// color:'blue'
+				color:'rgb('+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+')'
+			}
+			balls.push(ball);
+		}
+
+		function ifTouchBall(ball1,ball2){
+			let distance=Math.pow(Math.pow(ball1.x-ball2.x,2)+Math.pow(ball1.y-ball2.y,2),0.5);
+			if(distance<=ball1.r+ball2.r){
+				return true;
+			}
+		}
+
+		function collision(ball1,ball2){
+			//把ball1作为参考系,此参考系记为B,原参考系记为A。计算B下ball2的速度，坐标
+			let relative_vx=ball1.vx;
+			let relative_vy=ball1.vy;
+			let relative_x=ball1.x;
+			let relative_y=ball1.y;
+			let vx=ball2.vx-relative_vx;
+			let vy=ball2.vy-relative_vy;
+			let x=ball2.x-relative_x;
+			let y=ball2.y-relative_y;
+
+			//以相对速度v0的方向 为x轴 作坐标旋转变换，变换后的参考系记为C
+			let v0=Math.pow(Math.pow(vx,2)+Math.pow(vy,2),0.5);
+			let sin_o=vy/v0;
+			let cos_o=vx/v0;
+			//作旋转变换
+			let xuan_x=x*cos_o+y*sin_o;
+			let xuan_y=-x*sin_o+y*cos_o;
+
+			//计算旋转坐标系C下ball1的速度方向β,速度方向为ball1相对于ball2的方向
+			let distance=Math.pow(Math.pow(xuan_x,2)+Math.pow(xuan_y,2),0.5);
+			let cos_B=-xuan_x/distance;
+			let sin_B=-xuan_y/distance;
+			//计算C下的ball1的速度和速度分量
+			let ball1_v_C=(2*ball2.m*v0*cos_B)/(ball1.m+ball2.m);
+			let ball1_vx_C=ball1_v_C*cos_B;
+			let ball1_vy_C=ball1_v_C*sin_B;
+
+			//计算C下的ball2的速度和速度分量
+			let ball2_v_C_pingfang=v0*v0-(ball1.m*ball1_v_C*ball1_v_C)/ball2.m;
+			let ball2_v_C;
+			let ball2_vx_C;
+			let ball2_vy_C;
+			let sin_a;
+			let cos_a;
+			if(ball2_v_C_pingfang<=0){
+				//若碰撞后ball2静止，应单独计算，防止出现 除0异常,负数开方异常
+				let ball2_v_C=0;
+				ball2_vx_C=0;
+				ball2_vy_C=0;
+			}
+			else{
+				ball2_v_C=Math.pow((v0*v0-(ball1.m*ball1_v_C*ball1_v_C)/ball2.m),0.5);
+				sin_a=-(ball1.m*ball1_v_C*sin_B)/(ball2.m*ball2_v_C);
+				cos_a=(ball2.m*v0-ball1.m*ball1_v_C*cos_B)/(ball2.m*ball2_v_C);
+				ball2_vx_C=ball2_v_C*cos_a;
+				ball2_vy_C=ball2_v_C*sin_a;
+			}
+
+			//整理C下两球的速度。变换回B参考系
+			let myArray_C=[[ball1_vx_C,ball1_vy_C],[ball2_vx_C,ball2_vy_C]];
+			let myArray_B=new Array();
+			for(let i=0;i<myArray_C.length;i++){
+				myArray_B[i]=new Array();
+				myArray_B[i][0]=myArray_C[i][0]*cos_o-myArray_C[i][1]*sin_o;
+				myArray_B[i][1]=myArray_C[i][0]*sin_o+myArray_C[i][1]*cos_o;
+			}
+
+			ball1.vx=myArray_B[0][0]+relative_vx;
+			ball1.vy=myArray_B[0][1]+relative_vy;
+			ball2.vx=myArray_B[1][0]+relative_vx;
+			ball2.vy=myArray_B[1][1]+relative_vy;
+		}
+
+		function update(){
+			for(let i=0;i<balls.length;i++){
+				for(let j=i+1;j<balls.length;j++ ){
+					if(ifTouchBall(balls[i],balls[j])){
+						collision(balls[i],balls[j]);
+					}
+				}
+			}
+			for(var i=0; i<balls.length; i++){
+				balls[i].x+=balls[i].vx;
+				balls[i].y+=balls[i].vy;
+			}
+			iftouchwall();
+		}
+		function iftouchwall(){
+			for(var i=0; i<balls.length; i++){
+				if(balls[i].y>=context.canvas.height-balls[i].r){
+					balls[i].y=context.canvas.height-balls[i].r;
+					balls[i].vy=-balls[i].vy;
+				}
+				if(balls[i].y<=balls[i].r){
+					balls[i].y=balls[i].r;
+					balls[i].vy=-balls[i].vy;
+				}
+				if(balls[i].x>=context.canvas.width-balls[i].r){
+					balls[i].x=context.canvas.width-balls[i].r;
+					balls[i].vx=-balls[i].vx;
+				}
+				if(balls[i].x<=balls[i].r){
+					balls[i].x=balls[i].r;
+					balls[i].vx=-balls[i].vx;
+				}
+			}
+		}
+		function render(cxt){
+			cxt.clearRect(0,0,cxt.canvas.width,cxt.canvas.height);
+			for(var i=0;i<balls.length;i++){
+				if(balls[i].emoji){
+					cxt.drawImage(myImg,balls[i].x-balls[i].r,context.canvas.height-balls[i].y-balls[i].r,2*balls[i].r,2*balls[i].r)
+				}else{
+					cxt.fillStyle=balls[i].color;
+					cxt.beginPath();
+					cxt.arc(balls[i].x,context.canvas.height-balls[i].y,balls[i].r,0,2*Math.PI);
+					cxt.closePath();
+					cxt.fill();
+				}
+			}
+
+			
+		}
+		window.onload=function(){
+			// initballs();
+			setInterval(function(){
+				if(!pause){
+					update();
+				}
+				render(context);
+			},4)
+		}
+	</script>
+</body>
+</html>
